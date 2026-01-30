@@ -1,0 +1,23 @@
+{
+    "name": "ESP-Mesh-Lite-Arduino",
+    "version": "1.0.0",
+    "description": "Arduino library for ESP-Mesh-Lite mesh networking on ESP32",
+    "keywords": ["esp32", "mesh", "networking", "wifi", "iot"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/andrewflash/esp-mesh-lite-arduino.git"
+    },
+    "authors": [
+        {
+            "name": "Espressif Systems",
+            "url": "https://www.espressif.com"
+        }
+    ],
+    "license": "Apache-2.0",
+    "frameworks": "arduino",
+    "platforms": "espressif32",
+    "build": {
+        "extraScript": "extra_script.py",
+        "libArchive": false
+    }
+}

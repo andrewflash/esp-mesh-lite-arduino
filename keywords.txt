@@ -1,0 +1,76 @@
+#######################################
+# ESP-Mesh-Lite Arduino Library
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Classes (KEYWORD1)
+#######################################
+
+MeshLite	KEYWORD1
+MeshLiteInstance	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+start	KEYWORD2
+stop	KEYWORD2
+setRouterCredentials	KEYWORD2
+setSoftAPCredentials	KEYWORD2
+setMeshId	KEYWORD2
+getMeshId	KEYWORD2
+setMaxLevel	KEYWORD2
+setLeafNode	KEYWORD2
+allowJoining	KEYWORD2
+getLevel	KEYWORD2
+isRoot	KEYWORD2
+isLeafNode	KEYWORD2
+getNodeCount	KEYWORD2
+getDeviceCategory	KEYWORD2
+getRootIP	KEYWORD2
+sendToRoot	KEYWORD2
+sendToParent	KEYWORD2
+broadcastToChildren	KEYWORD2
+onEvent	KEYWORD2
+onMessage	KEYWORD2
+scan	KEYWORD2
+getConfig	KEYWORD2
+
+#######################################
+# Mesh Events (LITERAL1)
+#######################################
+
+ROOT	LITERAL1
+
+# Core Events
+ESP_MESH_LITE_EVENT_CORE_STARTED	LITERAL1
+ESP_MESH_LITE_EVENT_CORE_INHERITED_NET_SEGMENT_CHANGED	LITERAL1
+ESP_MESH_LITE_EVENT_CORE_ROUTER_INFO_CHANGED	LITERAL1
+
+# Node Events
+ESP_MESH_LITE_EVENT_NODE_JOIN	LITERAL1
+ESP_MESH_LITE_EVENT_NODE_LEAVE	LITERAL1
+ESP_MESH_LITE_EVENT_NODE_CHANGE	LITERAL1
+
+# OTA Events
+ESP_MESH_LITE_EVENT_OTA_START	LITERAL1
+ESP_MESH_LITE_EVENT_OTA_FINISH	LITERAL1
+ESP_MESH_LITE_EVENT_OTA_PROGRESS	LITERAL1
+
+#######################################
+# ESP-NOW Data Types (LITERAL1)
+#######################################
+
+ESPNOW_DATA_TYPE_MESH_LITE_CORE	LITERAL1
+ESPNOW_DATA_TYPE_RM_GROUP_CONTROL	LITERAL1
+ESPNOW_DATA_TYPE_ZERO_PROV	LITERAL1
+ESPNOW_DATA_TYPE_WIRELESS_DEBUG	LITERAL1
+ESPNOW_DATA_TYPE_WIRELESS_LOG	LITERAL1
+
+#######################################
+# Event Bases (LITERAL1)
+#######################################
+
+ESP_MESH_LITE_EVENT	LITERAL1
