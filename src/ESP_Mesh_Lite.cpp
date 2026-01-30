@@ -349,9 +349,8 @@ bool MeshLite::getRootIP(char* ip, size_t len)
         return false;
     }
 
-    // Extract bytes directly from memory (lwIP stores in network byte order)
-    uint8_t* bytes = (uint8_t*)&ip_addr.u_addr.ip4.addr;
-    snprintf(ip, len, "%u.%u.%u.%u", bytes[0], bytes[1], bytes[2], bytes[3]);
+    // Use ESP-IDF helper to convert IP to string (handles byte order)
+    esp_ip4addr_ntoa(&ip_addr.u_addr.ip4, ip, len);
     return true;
 }
 
