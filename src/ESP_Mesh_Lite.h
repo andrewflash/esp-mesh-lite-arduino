@@ -40,6 +40,9 @@ public:
     bool setMaxLevel(uint8_t level);
     bool setLeafNode(bool enable);
     bool allowJoining(bool allow);
+    bool setNetworkingMode(bool routerFirst, int8_t rssiThreshold = -75);
+    bool setFusionConfig(uint32_t startTimeSec = 0, uint32_t frequencySec = 60);
+    void setReconnectInterval(uint32_t parentInterval, uint32_t parentCount, uint32_t scanInterval);
 
     // Status
     uint8_t getMeshId();
@@ -50,10 +53,14 @@ public:
     const char* getDeviceCategory();
     bool getRootIP(char* ip, size_t len);
 
-    // Communication
+    // Communication (raw)
     bool sendToRoot(const char* payload);
     bool sendToParent(const char* payload);
     bool broadcastToChildren(const char* payload);
+
+    // Communication (typed messages - use with onMessage handlers)
+    bool sendTypedToRoot(const char* msgType, const char* respType, cJSON* payload, uint8_t maxRetry = 1);
+    bool sendTypedToChildren(const char* msgType, const char* respType, cJSON* payload, uint8_t maxRetry = 1);
 
     // Events
     void onEvent(MeshLiteEventCallback callback);
@@ -66,10 +73,14 @@ public:
     esp_mesh_lite_config_t* getConfig();
 
 private:
+    static const uint8_t MAX_MSG_ACTIONS = 4;
+
     esp_mesh_lite_config_t _config;
     bool _initialized;
     bool _started;
     MeshLiteEventCallback _eventCallback;
+    esp_mesh_lite_msg_action_t _msgActions[MAX_MSG_ACTIONS];
+    uint8_t _msgActionCount;
 
     char _routerSsid[33];
     char _routerPassword[65];

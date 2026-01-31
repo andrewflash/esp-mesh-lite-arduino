@@ -13,9 +13,11 @@ MeshLite::MeshLite()
     : _initialized(false)
     , _started(false)
     , _eventCallback(nullptr)
+    , _msgActionCount(0)
 {
     // Initialize configuration with defaults
     memset(&_config, 0, sizeof(_config));
+    memset(_msgActions, 0, sizeof(_msgActions));
     _config.vendor_id[0] = CONFIG_MESH_LITE_VENDOR_ID_0;
     _config.vendor_id[1] = CONFIG_MESH_LITE_VENDOR_ID_1;
     _config.mesh_id = CONFIG_MESH_LITE_ID;
@@ -296,6 +298,48 @@ bool MeshLite::broadcastToChildren(const char* payload)
     return esp_mesh_lite_send_broadcast_msg_to_child(payload) == ESP_OK;
 }
 
+bool MeshLite::sendTypedToRoot(const char* msgType, const char* respType, cJSON* payload, uint8_t maxRetry)
+{
+    if (!_initialized || !_started || !msgType || !payload) {
+        return false;
+    }
+
+    esp_mesh_lite_msg_config_t config = {
+        .json_msg = {
+            .send_msg = msgType,
+            .expect_msg = respType,
+            .max_retry = maxRetry,
+            .retry_interval = 1000,
+            .req_payload = payload,
+            .resend = esp_mesh_lite_send_msg_to_root,
+            .send_fail = NULL
+        }
+    };
+
+    return esp_mesh_lite_send_msg(ESP_MESH_LITE_JSON_MSG, &config) == ESP_OK;
+}
+
+bool MeshLite::sendTypedToChildren(const char* msgType, const char* respType, cJSON* payload, uint8_t maxRetry)
+{
+    if (!_initialized || !_started || !msgType || !payload) {
+        return false;
+    }
+
+    esp_mesh_lite_msg_config_t config = {
+        .json_msg = {
+            .send_msg = msgType,
+            .expect_msg = respType,
+            .max_retry = maxRetry,
+            .retry_interval = 1000,
+            .req_payload = payload,
+            .resend = esp_mesh_lite_send_broadcast_msg_to_child,
+            .send_fail = NULL
+        }
+    };
+
+    return esp_mesh_lite_send_msg(ESP_MESH_LITE_JSON_MSG, &config) == ESP_OK;
+}
+
 void MeshLite::onEvent(MeshLiteEventCallback callback)
 {
     _eventCallback = callback;
@@ -312,13 +356,22 @@ bool MeshLite::onMessage(const char* messageType, const char* responseType, Mesh
         return false;
     }
 
-    esp_mesh_lite_msg_action_t action = {
-        .type = messageType,
-        .rsp_type = responseType,
-        .process = callback
-    };
+    // Check capacity
+    if (_msgActionCount >= MAX_MSG_ACTIONS) {
+        return false;
+    }
 
-    return esp_mesh_lite_msg_action_list_register(&action) == ESP_OK;
+    // Use persistent class member array - no dynamic allocation
+    esp_mesh_lite_msg_action_t* action = &_msgActions[_msgActionCount];
+    action->type = messageType;
+    action->rsp_type = responseType;
+    action->process = callback;
+
+    if (esp_mesh_lite_msg_action_list_register(action) == ESP_OK) {
+        _msgActionCount++;
+        return true;
+    }
+    return false;
 }
 
 bool MeshLite::allowJoining(bool allow)
@@ -327,6 +380,29 @@ bool MeshLite::allowJoining(bool allow)
         return false;
     }
     return esp_mesh_lite_allow_others_to_join(allow) == ESP_OK;
+}
+
+bool MeshLite::setNetworkingMode(bool routerFirst, int8_t rssiThreshold)
+{
+    esp_mesh_lite_networking_mode_t mode = routerFirst
+        ? ESP_MESH_LITE_ROUTER
+        : ESP_MESH_LITE_MESH;
+    return esp_mesh_lite_set_networking_mode(mode, rssiThreshold) == ESP_OK;
+}
+
+bool MeshLite::setFusionConfig(uint32_t startTimeSec, uint32_t frequencySec)
+{
+    esp_mesh_lite_fusion_config_t config = {
+        .fusion_rssi_threshold = -85,
+        .fusion_start_time_sec = startTimeSec,
+        .fusion_frequency_sec = frequencySec
+    };
+    return esp_mesh_lite_set_fusion_config(&config) == ESP_OK;
+}
+
+void MeshLite::setReconnectInterval(uint32_t parentInterval, uint32_t parentCount, uint32_t scanInterval)
+{
+    esp_mesh_lite_set_wifi_reconnect_interval(parentInterval, parentCount, scanInterval);
 }
 
 bool MeshLite::setMaxLevel(uint8_t level)
