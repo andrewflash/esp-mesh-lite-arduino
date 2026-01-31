@@ -15,6 +15,8 @@ MeshLite::MeshLite()
     , _eventCallback(nullptr)
     , _msgActionCount(0)
     , _softapHidden(false)
+    , _staProtocol(MESH_WIFI_PROTOCOL_BGNLR)    // STA: support all modes for router compatibility
+    , _softapProtocol(MESH_WIFI_PROTOCOL_BGNLR) // SoftAP: support all modes including LR for mesh
 {
     // Initialize configuration with defaults
     memset(&_config, 0, sizeof(_config));
@@ -162,6 +164,12 @@ void MeshLite::start()
     }
 
     esp_wifi_start();
+
+    // Configure WiFi protocols for STA and SoftAP
+    // STA: typically B/G/N/LR to support both routers (B/G/N) and mesh parents (LR)
+    // SoftAP: can be LR-only for extended mesh range, or B/G/N/LR for compatibility
+    esp_wifi_set_protocol(WIFI_IF_STA, _staProtocol);
+    esp_wifi_set_protocol(WIFI_IF_AP, _softapProtocol);
 
     // Configure SoftAP password and hidden SSID
     wifi_config_t ap_config = {};
@@ -446,6 +454,12 @@ void MeshLite::setReconnectInterval(uint32_t parentInterval, uint32_t parentCoun
 void MeshLite::setSoftAPHidden(bool hidden)
 {
     _softapHidden = hidden;
+}
+
+void MeshLite::setWiFiProtocol(uint8_t staProtocol, uint8_t softapProtocol)
+{
+    _staProtocol = staProtocol;
+    _softapProtocol = softapProtocol;
 }
 
 bool MeshLite::setMaxLevel(uint8_t level)

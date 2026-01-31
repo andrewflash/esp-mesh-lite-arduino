@@ -22,6 +22,19 @@ extern "C" {
 typedef void (*MeshLiteEventCallback)(esp_event_base_t event_base, int32_t event_id, void* event_data);
 typedef cJSON* (*MeshLiteMessageCallback)(cJSON* payload, uint32_t seq);
 
+// WiFi protocol modes (can be OR'd together)
+// Note: LR mode is ESP32-specific and provides extended range but lower data rate
+// LR mode only works between ESP32 devices, not with standard WiFi routers
+enum MeshLiteWiFiProtocol : uint8_t {
+    MESH_WIFI_PROTOCOL_11B   = WIFI_PROTOCOL_11B,       // 802.11b
+    MESH_WIFI_PROTOCOL_11G   = WIFI_PROTOCOL_11G,       // 802.11g
+    MESH_WIFI_PROTOCOL_11N   = WIFI_PROTOCOL_11N,       // 802.11n
+    MESH_WIFI_PROTOCOL_LR    = WIFI_PROTOCOL_LR,        // ESP32 Long Range mode
+    MESH_WIFI_PROTOCOL_BGN   = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N,
+    MESH_WIFI_PROTOCOL_BGNLR = WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N | WIFI_PROTOCOL_LR,
+    MESH_WIFI_PROTOCOL_LR_ONLY = WIFI_PROTOCOL_LR,      // LR only (mesh-only, no router)
+};
+
 class MeshLite {
 public:
     MeshLite();
@@ -44,6 +57,7 @@ public:
     bool setFusionConfig(uint32_t startTimeSec = 0, uint32_t frequencySec = 60);
     void setReconnectInterval(uint32_t parentInterval, uint32_t parentCount, uint32_t scanInterval);
     void setSoftAPHidden(bool hidden);
+    void setWiFiProtocol(uint8_t staProtocol, uint8_t softapProtocol);
 
     // Status
     uint8_t getMeshId();
@@ -88,6 +102,8 @@ private:
     char _softapSsid[33];
     char _softapPassword[65];
     bool _softapHidden;
+    uint8_t _staProtocol;
+    uint8_t _softapProtocol;
 
     bool initNVS();
     bool initNetif();
