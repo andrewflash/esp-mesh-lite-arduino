@@ -67,6 +67,7 @@ public:
     uint32_t getNodeCount();
     const char* getDeviceCategory();
     bool getRootIP(char* ip, size_t len);
+    uint8_t getConnectionProtocol();  // Get WiFi protocol of current connection (phy flags)
 
     // Communication (raw)
     bool sendToRoot(const char* payload);

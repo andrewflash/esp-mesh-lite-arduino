@@ -487,6 +487,23 @@ bool MeshLite::getRootIP(char* ip, size_t len)
     return true;
 }
 
+uint8_t MeshLite::getConnectionProtocol()
+{
+    wifi_ap_record_t ap_info;
+    if (esp_wifi_sta_get_ap_info(&ap_info) != ESP_OK) {
+        return 0;
+    }
+
+    // Build protocol bitmap from AP's supported/negotiated PHY modes
+    uint8_t protocol = 0;
+    if (ap_info.phy_11b) protocol |= WIFI_PROTOCOL_11B;
+    if (ap_info.phy_11g) protocol |= WIFI_PROTOCOL_11G;
+    if (ap_info.phy_11n) protocol |= WIFI_PROTOCOL_11N;
+    if (ap_info.phy_lr)  protocol |= WIFI_PROTOCOL_LR;
+
+    return protocol;
+}
+
 bool MeshLite::scan(uint32_t timeoutMs)
 {
     if (!_initialized || !_started) {
