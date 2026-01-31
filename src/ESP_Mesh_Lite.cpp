@@ -14,6 +14,7 @@ MeshLite::MeshLite()
     , _started(false)
     , _eventCallback(nullptr)
     , _msgActionCount(0)
+    , _softapHidden(false)
 {
     // Initialize configuration with defaults
     memset(&_config, 0, sizeof(_config));
@@ -127,6 +128,33 @@ bool MeshLite::begin(esp_mesh_lite_config_t& config)
     return true;
 }
 
+// Static storage for hidden SSID callback
+static char s_hiddenSsidPrefix[33] = {0};
+
+// Static callback to derive SSID from BSSID for hidden SSID mesh networking
+static const uint8_t* hiddenSsidCallback(const uint8_t* bssid)
+{
+    if (bssid == nullptr) {
+        return nullptr;
+    }
+
+    // Generate SSID from SoftAP SSID prefix + last 3 bytes of BSSID
+    static uint8_t ssid[33];
+    strncpy((char*)ssid, s_hiddenSsidPrefix, sizeof(ssid) - 1);
+    ssid[sizeof(ssid) - 1] = '\0';
+
+    char suffix[8];
+    snprintf(suffix, sizeof(suffix), "_%02x%02x%02x", bssid[3], bssid[4], bssid[5]);
+
+    // Ensure combined length doesn't exceed 32 chars
+    if (strlen((char*)ssid) + strlen(suffix) > 32) {
+        ssid[32 - strlen(suffix)] = '\0';
+    }
+    strncat((char*)ssid, suffix, sizeof(ssid) - strlen((char*)ssid) - 1);
+
+    return ssid;
+}
+
 void MeshLite::start()
 {
     if (!_initialized || _started) {
@@ -135,13 +163,23 @@ void MeshLite::start()
 
     esp_wifi_start();
 
+    // Configure SoftAP password and hidden SSID
+    wifi_config_t ap_config = {};
+    esp_wifi_get_config(WIFI_IF_AP, &ap_config);
+
     if (strlen(_softapPassword) > 0) {
-        wifi_config_t ap_config = {};
-        esp_wifi_get_config(WIFI_IF_AP, &ap_config);
         strncpy((char*)ap_config.ap.password, _softapPassword, sizeof(ap_config.ap.password) - 1);
         ap_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
-        esp_wifi_set_config(WIFI_IF_AP, &ap_config);
     }
+
+    if (_softapHidden) {
+        ap_config.ap.ssid_hidden = 1;
+        // Store SSID prefix for callback and register callback
+        strncpy(s_hiddenSsidPrefix, _softapSsid, sizeof(s_hiddenSsidPrefix) - 1);
+        esp_mesh_lite_get_ssid_by_mac_cb_register(hiddenSsidCallback, false);
+    }
+
+    esp_wifi_set_config(WIFI_IF_AP, &ap_config);
 
     esp_mesh_lite_start();
     _started = true;
@@ -403,6 +441,11 @@ bool MeshLite::setFusionConfig(uint32_t startTimeSec, uint32_t frequencySec)
 void MeshLite::setReconnectInterval(uint32_t parentInterval, uint32_t parentCount, uint32_t scanInterval)
 {
     esp_mesh_lite_set_wifi_reconnect_interval(parentInterval, parentCount, scanInterval);
+}
+
+void MeshLite::setSoftAPHidden(bool hidden)
+{
+    _softapHidden = hidden;
 }
 
 bool MeshLite::setMaxLevel(uint8_t level)
