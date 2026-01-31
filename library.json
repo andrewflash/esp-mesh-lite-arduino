@@ -1,6 +1,6 @@
 {
     "name": "ESP-Mesh-Lite-Arduino",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Arduino library for ESP-Mesh-Lite mesh networking on ESP32",
     "keywords": ["esp32", "mesh", "networking", "wifi", "iot"],
     "repository": {

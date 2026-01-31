@@ -1,5 +1,9 @@
 # ESP-Mesh-Lite Arduino Library
 
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-ESP32-orange.svg)](https://www.espressif.com)
+
 Arduino/PlatformIO compatible wrapper for Espressif's [ESP-Mesh-Lite](https://github.com/espressif/esp-mesh-lite) library.
 
 ## Features
@@ -8,6 +12,8 @@ Arduino/PlatformIO compatible wrapper for Espressif's [ESP-Mesh-Lite](https://gi
 - Arduino-friendly C++ wrapper class (`MeshLite`)
 - Supports ESP32, ESP32-S2, ESP32-S3, ESP32-C2, ESP32-C3, ESP32-C6
 - Self-contained: pre-compiled libraries included (no submodules)
+- **Multi-root topology** - Multiple nodes can connect directly to router
+- **Typed messaging** - Request-response pattern with automatic retry
 - ESP-NOW support for low-latency communication
 - Works with PlatformIO and Arduino IDE
 
@@ -96,27 +102,95 @@ build_flags =
 
 ### MeshLite Class
 
+#### Initialization
+
 | Method | Description |
 |--------|-------------|
 | `begin()` | Initialize mesh with default config |
 | `start()` | Start mesh networking |
 | `stop()` | Stop and disconnect |
+
+#### Configuration
+
+| Method | Description |
+|--------|-------------|
 | `setRouterCredentials(ssid, pass)` | Set external WiFi credentials |
 | `setSoftAPCredentials(ssid, pass)` | Set mesh node SoftAP credentials |
 | `setMeshId(id)` | Set mesh network ID |
+| `setMaxLevel(level)` | Set maximum mesh depth |
+| `setLeafNode(enable)` | Set node as leaf (no children) |
+| `allowJoining(allow)` | Enable/disable new node joining |
+
+#### Networking Mode (Multi-Root Support)
+
+| Method | Description |
+|--------|-------------|
+| `setNetworkingMode(routerFirst, rssiThreshold)` | Enable router-first mode for multi-root topology |
+| `setFusionConfig(startTimeSec, frequencySec)` | Configure topology optimization timing |
+| `setReconnectInterval(parentInterval, parentCount, scanInterval)` | Configure reconnection behavior |
+
+**Router-First Mode:** When enabled, each node tries to connect directly to the router first. Multiple nodes can be root simultaneously. Nodes only form mesh hierarchy when they can't reach the router.
+
+```cpp
+// Enable router-first mode with -75 dBm threshold
+mesh.setNetworkingMode(true, -75);
+
+// Start fusion after 30s, check every 60s
+mesh.setFusionConfig(30, 60);
+
+// Reconnect: 3s interval, 2 attempts, then scan every 5s
+mesh.setReconnectInterval(3, 2, 5);
+```
+
+#### Status
+
+| Method | Description |
+|--------|-------------|
 | `getMeshId()` | Get current mesh ID |
 | `getLevel()` | Get node level (1=root) |
 | `isRoot()` | Check if this is root node |
 | `isLeafNode()` | Check if this is a leaf node |
-| `setLeafNode(enable)` | Set node as leaf (no children) |
 | `getNodeCount()` | Get total nodes in mesh |
 | `getRootIP(buf, len)` | Get root node IP address |
-| `sendToRoot(payload)` | Send JSON message to root |
-| `sendToParent(payload)` | Send JSON message to parent |
-| `broadcastToChildren(payload)` | Broadcast JSON to children |
+
+#### Communication (Raw)
+
+| Method | Description |
+|--------|-------------|
+| `sendToRoot(payload)` | Send raw JSON message to root |
+| `sendToParent(payload)` | Send raw JSON message to parent |
+| `broadcastToChildren(payload)` | Broadcast raw JSON to children |
+
+#### Communication (Typed Messages)
+
+Typed messages allow request-response matching and automatic retry.
+
+| Method | Description |
+|--------|-------------|
+| `sendTypedToRoot(msgType, respType, payload, maxRetry)` | Send typed message to root |
+| `sendTypedToChildren(msgType, respType, payload, maxRetry)` | Send typed message to children |
+| `onMessage(msgType, respType, callback)` | Register handler for typed messages |
+
+**Example:**
+```cpp
+// Register handler for "status" messages
+mesh.onMessage("status", "status_ack", [](cJSON* payload, uint32_t seq) -> cJSON* {
+    // Process payload
+    return nullptr;  // or return response
+});
+
+// Send typed message with retry
+cJSON* data = cJSON_CreateObject();
+cJSON_AddNumberToObject(data, "level", mesh.getLevel());
+mesh.sendTypedToRoot("status", "status_ack", data);
+cJSON_Delete(data);
+```
+
+#### Events
+
+| Method | Description |
+|--------|-------------|
 | `onEvent(callback)` | Register event callback |
-| `onMessage(type, resp, callback)` | Register message handler |
-| `allowJoining(allow)` | Enable/disable new node joining |
 | `scan(timeoutMs)` | Trigger WiFi scan |
 
 ## Project Structure
@@ -127,6 +201,7 @@ esp-mesh-lite-arduino/
 ├── library.properties      # Arduino IDE library manifest
 ├── extra_script.py         # Build script for chip-specific linking
 ├── keywords.txt            # Arduino IDE syntax highlighting
+├── CHANGELOG.md            # Version history
 ├── README.md
 ├── lib/                    # Pre-compiled libraries by chip
 │   ├── esp32/
@@ -168,6 +243,33 @@ esp-mesh-lite-arduino/
 - PlatformIO with pioarduino platform (ESP-IDF 5.x based), or Arduino IDE with ESP32 board support 3.x+
 - Arduino framework for ESP32
 - No external dependencies required (cJSON and ESP-NOW provided by ESP32 Arduino core)
+
+## Multi-Root Topology
+
+By default, ESP-Mesh-Lite forms a single-root tree where one node connects to the router and others connect through the mesh. With **router-first mode**, multiple nodes can independently connect to the same router:
+
+```
+Normal Mode (single root):        Router-First Mode (multi-root):
+      [Router]                          [Router]
+         │                             /   │   \
+      [Root]                       [A]   [B]   [C]  ← All are root (level 1)
+       /   \
+    [A]     [B]
+
+When router unavailable for C:
+      [Router]
+       /   \
+    [A]   [B]  ← Both still root
+           │
+         [C]   ← Falls back to mesh (level 2)
+```
+
+**Enable with:**
+```cpp
+mesh.setNetworkingMode(true, -75);  // router-first, RSSI threshold
+mesh.setFusionConfig(30, 60);       // Periodically try to reconnect to router
+mesh.setReconnectInterval(3, 2, 5); // Fallback timing when router lost
+```
 
 ## Mesh Events
 
