@@ -358,7 +358,7 @@ static void esp_mesh_lite_event_ap_sta_ip_assigned_handler(void *arg, esp_event_
 
 uint32_t esp_mesh_lite_get_mesh_node_number(void)
 {
-#ifdef CONFIG_MESH_LITE_NODE_INFO_REPORT
+#if CONFIG_MESH_LITE_NODE_INFO_REPORT
     return nodes_num;
 #else
     return 0;

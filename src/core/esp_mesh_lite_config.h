@@ -97,7 +97,7 @@ extern "C" {
 
 // Node information reporting
 #ifndef CONFIG_MESH_LITE_NODE_INFO_REPORT
-#define CONFIG_MESH_LITE_NODE_INFO_REPORT 1
+#define CONFIG_MESH_LITE_NODE_INFO_REPORT 0
 #endif
 
 #ifndef CONFIG_MESH_LITE_REPORT_INTERVAL
