@@ -56,7 +56,6 @@ public:
     bool setNetworkingMode(bool routerFirst, int8_t rssiThreshold = -75);
     bool setFusionConfig(uint32_t startTimeSec = 0, uint32_t frequencySec = 60);
     void setReconnectInterval(uint32_t parentInterval, uint32_t parentCount, uint32_t scanInterval);
-    void setSoftAPHidden(bool hidden);
     void setWiFiProtocol(uint8_t staProtocol, uint8_t softapProtocol);
 
     // Status
@@ -102,7 +101,6 @@ private:
     char _routerPassword[65];
     char _softapSsid[33];
     char _softapPassword[65];
-    bool _softapHidden;
     uint8_t _staProtocol;
     uint8_t _softapProtocol;
 

@@ -142,16 +142,13 @@ mesh.setFusionConfig(30, 60);
 mesh.setReconnectInterval(3, 2, 5);
 ```
 
-#### Security & Range
+#### WiFi Protocol Modes
 
 | Method | Description |
 |--------|-------------|
-| `setSoftAPHidden(hidden)` | Hide SoftAP SSID (nodes discover by BSSID) |
 | `setWiFiProtocol(sta, softap)` | Set WiFi protocol modes for STA and SoftAP |
 
-**Hidden SSID:** When enabled, the mesh SoftAP SSID is not broadcast. Nodes discover mesh parents by BSSID and derive the expected SSID using a callback.
-
-**WiFi Protocol Modes:** ESP32 supports 802.11 b/g/n and a proprietary Long Range (LR) mode. LR provides extended range (~1km line-of-sight) but only works between ESP32 devices.
+ESP32 supports 802.11 b/g/n and a proprietary Long Range (LR) mode. LR provides extended range (~1km line-of-sight) but only works between ESP32 devices.
 
 ```cpp
 // Available protocol constants (can be OR'd together):
@@ -161,9 +158,6 @@ mesh.setReconnectInterval(3, 2, 5);
 // MESH_WIFI_PROTOCOL_LR     - ESP32 Long Range only
 // MESH_WIFI_PROTOCOL_BGN    - 802.11 b/g/n (standard)
 // MESH_WIFI_PROTOCOL_BGNLR  - All modes including LR (default)
-
-// Hide SoftAP SSID
-mesh.setSoftAPHidden(true);
 
 // STA: B/G/N/LR to connect to router (B/G/N) and mesh parents (LR)
 // SoftAP: LR-only for maximum mesh range (ESP32 children only)
