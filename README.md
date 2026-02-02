@@ -1,6 +1,6 @@
 # ESP-Mesh-Lite Arduino Library
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-ESP32-orange.svg)](https://www.espressif.com)
 
@@ -174,6 +174,7 @@ mesh.setWiFiProtocol(MESH_WIFI_PROTOCOL_BGNLR, MESH_WIFI_PROTOCOL_LR);
 | `isLeafNode()` | Check if this is a leaf node |
 | `getNodeCount()` | Get total nodes in mesh |
 | `getRootIP(buf, len)` | Get root node IP address |
+| `getConnectionProtocol()` | Get current WiFi PHY mode |
 
 #### Communication (Raw)
 

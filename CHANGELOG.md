@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-02-02
+
+### Added
+
+- **WiFi Protocol Configuration**
+  - `setWiFiProtocol(staProtocol, softapProtocol)` - Configure WiFi protocol modes for STA and SoftAP interfaces
+  - Protocol constants: `MESH_WIFI_PROTOCOL_11B`, `_11G`, `_11N`, `_LR`, `_BGN`, `_BGNLR`, `_LR_ONLY`
+  - Long Range (LR) mode support for extended mesh range between ESP32 devices
+
+- **PHY Mode Query**
+  - `getConnectionProtocol()` - Retrieve current WiFi connection protocol mode
+
+### Removed
+
+- **Hidden SSID Support**
+  - Removed `setSoftAPHidden()` - ESP-Mesh-Lite's internal WiFi scan doesn't support hidden SSIDs (uses `show_hidden=false`)
+  - Hidden SoftAP SSIDs prevent mesh nodes from discovering parents
+
 ## [1.1.0] - 2025-01-31
 
 ### Added
@@ -48,5 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESP-NOW support for low-latency communication
 - Comprehensive documentation and examples
 
+[1.2.0]: https://github.com/andrewflash/esp-mesh-lite-arduino/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/andrewflash/esp-mesh-lite-arduino/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/andrewflash/esp-mesh-lite-arduino/releases/tag/v1.0.0
